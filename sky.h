@@ -42,6 +42,9 @@ class Sky
     glm::vec4 sunPos;
     double hour;
     unsigned int timestampYear;
+    float sunHeightMax;
+    float sunHeightMin;
+    float heightSun;
 
     GLuint loadShader(const std::string path);
     char* readFileShader(const std::string &path);
@@ -57,8 +60,29 @@ class Sky
 
     void Init(tm &dat,const float lat,glm::vec3 hColor,glm::vec3 zColor,const float spd=1.0f);
     void Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj);
+
     glm::vec4 getSunPos()
     {
         return sunPos;
+    }
+
+    float getSunHeightMax()
+    {
+        return sunHeightMax;
+    }
+
+    float getSunHeightMin()
+    {
+        return sunHeightMin;
+    }
+
+    float getSunHeight()
+    {
+        return heightSun;
+    }
+
+    float getHour()
+    {
+        return hour;
     }
 };

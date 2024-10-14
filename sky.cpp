@@ -1,106 +1,113 @@
 #include <GL/glew.h>
 #include "sky.h"
 
-void Sky::Init(tm &dat,const float lat,glm::vec3 hColor,glm::vec3 zColor,const float spd)
+void Sky::Init(tm &dat, const float lat, glm::vec3 hColor, glm::vec3 zColor, const float spd)
 {
-    speed=spd;
-    date=dat;
-    latitude=lat;
+    speed = spd;
+    date = dat;
+    latitude = lat;
 
-    if(date.tm_mon<=11)
-        date.tm_year=71;
-    else
-    if(date.tm_mon==12)
+    if(date.tm_mon <= 11)
     {
-        if(date.tm_mday<=20)
-            date.tm_year=70;
-        else
-            date.tm_year=70;
+        date.tm_year = 71;
     }
 
-    horizonColor=glm::vec3(hColor.x/255,hColor.y/255,hColor.z/255);
-    zenithColor=glm::vec3(zColor.x/255,zColor.y/255,zColor.z/255);
+    else
+    if(date.tm_mon == 12)
+    {
+        if(date.tm_mday <= 20)
+        {
+            date.tm_year = 70;
+        }
+        else
+        {
+            date.tm_year = 70;
+        }
+    }
 
-    shader=loadShader("../Mini-libs/sky/shaderSky.");
-    shaderStars=loadShader("../Mini-libs/sky/shaderStars.");
+    horizonColor = glm::vec3(hColor.x/255, hColor.y/255, hColor.z/255);
+    zenithColor = glm::vec3(zColor.x/255, zColor.y/255, zColor.z/255);
+
+    shader = loadShader("../Mini-libs/sky/shaderSky.");
+    shaderStars = loadShader("../Mini-libs/sky/shaderStars.");
 
     InitVBO();
 
-    chrono=SDL_GetTicks();
+    chrono = SDL_GetTicks();
 }
 
 void Sky::InitVBO()
 {
     float vertex[6*2*3*3]=
     {
-        -SKY_SIZE,-SKY_SIZE,-SKY_SIZE,          //Bas
-        -SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-        SKY_SIZE,-SKY_SIZE,-SKY_SIZE,
+        -SKY_SIZE, -SKY_SIZE, -SKY_SIZE,          //Bas
+        -SKY_SIZE, SKY_SIZE, -SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, -SKY_SIZE,
 
-        SKY_SIZE,-SKY_SIZE,-SKY_SIZE,
-        -SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-        SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-
-        //////////////
-
-        -SKY_SIZE,-SKY_SIZE,SKY_SIZE,          //Haut
-        -SKY_SIZE,SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-
-        SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        -SKY_SIZE,SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,SKY_SIZE,SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, -SKY_SIZE,
+        -SKY_SIZE, SKY_SIZE, -SKY_SIZE,
+        SKY_SIZE, SKY_SIZE, -SKY_SIZE,
 
         //////////////
 
-        -SKY_SIZE,-SKY_SIZE,-SKY_SIZE,          //Gauche
-        -SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        -SKY_SIZE,SKY_SIZE,-SKY_SIZE,
+        -SKY_SIZE, -SKY_SIZE, SKY_SIZE,          //Haut
+        -SKY_SIZE, SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, SKY_SIZE,
 
-        -SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-        -SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        -SKY_SIZE,SKY_SIZE,SKY_SIZE,
-
-        //////////////
-
-        SKY_SIZE,-SKY_SIZE,-SKY_SIZE,          //Droite
-        SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-
-        SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-        SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,SKY_SIZE,SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        -SKY_SIZE, SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, SKY_SIZE, SKY_SIZE,
 
         //////////////
 
-        -SKY_SIZE,-SKY_SIZE,-SKY_SIZE,          //Derrière
-        -SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,-SKY_SIZE,-SKY_SIZE,
+        -SKY_SIZE, -SKY_SIZE, -SKY_SIZE,          //Gauche
+        -SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        -SKY_SIZE, SKY_SIZE, -SKY_SIZE,
 
-        SKY_SIZE,-SKY_SIZE,-SKY_SIZE,
-        -SKY_SIZE,-SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,-SKY_SIZE,SKY_SIZE,
+        -SKY_SIZE, SKY_SIZE, -SKY_SIZE,
+        -SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        -SKY_SIZE, SKY_SIZE, SKY_SIZE,
 
         //////////////
 
-        -SKY_SIZE,SKY_SIZE,-SKY_SIZE,          //Devant
-        -SKY_SIZE,SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,SKY_SIZE,-SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, -SKY_SIZE,          //Droite
+        SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, SKY_SIZE, -SKY_SIZE,
 
-        SKY_SIZE,SKY_SIZE,-SKY_SIZE,
-        -SKY_SIZE,SKY_SIZE,SKY_SIZE,
-        SKY_SIZE,SKY_SIZE,SKY_SIZE
+        SKY_SIZE, SKY_SIZE, -SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, SKY_SIZE, SKY_SIZE,
+
+        //////////////
+
+        -SKY_SIZE, -SKY_SIZE, -SKY_SIZE,          //Derrière
+        -SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, -SKY_SIZE,
+
+        SKY_SIZE, -SKY_SIZE, -SKY_SIZE,
+        -SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, -SKY_SIZE, SKY_SIZE,
+
+        //////////////
+
+        -SKY_SIZE, SKY_SIZE, -SKY_SIZE,          //Devant
+        -SKY_SIZE, SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, SKY_SIZE, -SKY_SIZE,
+
+        SKY_SIZE, SKY_SIZE, -SKY_SIZE,
+        -SKY_SIZE, SKY_SIZE, SKY_SIZE,
+        SKY_SIZE, SKY_SIZE, SKY_SIZE
     };
 
-    glGenVertexArrays(1,&vbo.VAO);
-    glGenBuffers(1,&vbo.VBO);
+    glGenVertexArrays(1, &vbo.VAO);
+    glGenBuffers(1, &vbo.VBO);
 
     glBindVertexArray(vbo.VAO);
-    glBindBuffer(GL_ARRAY_BUFFER,vbo.VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo.VBO);
 
-    glBufferData(GL_ARRAY_BUFFER,6*2*3*3*sizeof(float),vertex,GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6*2*3*3 * sizeof(float), vertex, GL_STREAM_DRAW);
 
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(0);
@@ -133,7 +140,7 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
     glUniformMatrix4fv(glGetUniformLocation(shader,"model"), 1, false, glm::value_ptr(model));
     glUniformMatrix4fv(glGetUniformLocation(shader,"view"), 1, false, glm::value_ptr(view));
 
-    glDrawArrays(GL_TRIANGLES,0,6*2*3*3);
+    glDrawArrays(GL_TRIANGLES, 0, 6*2*3*3);
 
     glBindVertexArray(0);
 
