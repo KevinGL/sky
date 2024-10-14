@@ -45,6 +45,7 @@ class Sky
     float sunHeightMax;
     float sunHeightMin;
     float heightSun;
+    const float epsilon = 4.0f;
 
     GLuint loadShader(const std::string path);
     char* readFileShader(const std::string &path);
@@ -84,5 +85,10 @@ class Sky
     float getHour()
     {
         return hour;
+    }
+
+    float getEpsilon()
+    {
+        return epsilon;
     }
 };

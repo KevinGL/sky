@@ -164,5 +164,5 @@ void Sky::CalculSunPos()
 
     sunPos = rotation * sunPos;
 
-    //std::cout << hourHours << " => " << sunPos.x << " " << sunPos.y << " " << sunPos.z << std::endl;
+    std::cout << hourHours << " => " << heightSun << std::endl;
 }

@@ -120,27 +120,29 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
 {
     glDisable(GL_DEPTH_TEST);
 
-    DrawStars(posCam,model,view,proj);
+    DrawStars(posCam, model, view, proj);
 
     glUseProgram(shader);
 
     glBindVertexArray(vbo.VAO);
 
-    glUniform3f(glGetUniformLocation(shader,"posCam"), posCam.x, posCam.y, posCam.z);
+    glUniform3f(glGetUniformLocation(shader, "posCam"), posCam.x, posCam.y, posCam.z);
 
-    glUniform3f(glGetUniformLocation(shader,"horizonColor"), horizonColor.x, horizonColor.y, horizonColor.z);
-    glUniform3f(glGetUniformLocation(shader,"zenithColor"), zenithColor.x, zenithColor.y, zenithColor.z);
+    glUniform3f(glGetUniformLocation(shader, "horizonColor"), horizonColor.x, horizonColor.y, horizonColor.z);
+    glUniform3f(glGetUniformLocation(shader, "zenithColor"), zenithColor.x, zenithColor.y, zenithColor.z);
     //glUniform1d(glGetUniformLocation(shader,"opacity"), SkyOpacity());
 
     CalculSunPos();
 
-    glUniform3f(glGetUniformLocation(shader,"sunPos"), sunPos.x, sunPos.y, sunPos.z);
+    glUniform3f(glGetUniformLocation(shader, "sunPos"), sunPos.x, sunPos.y, sunPos.z);
+    glUniform1f(glGetUniformLocation(shader, "epsilon"), epsilon);
+    glUniform1f(glGetUniformLocation(shader, "heightSun"), heightSun);
 
-    glUniformMatrix4fv(glGetUniformLocation(shader,"proj"), 1, false, glm::value_ptr(proj));
-    glUniformMatrix4fv(glGetUniformLocation(shader,"model"), 1, false, glm::value_ptr(model));
-    glUniformMatrix4fv(glGetUniformLocation(shader,"view"), 1, false, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "proj"), 1, false, glm::value_ptr(proj));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, false, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "view"), 1, false, glm::value_ptr(view));
 
-    glDrawArrays(GL_TRIANGLES, 0, 6*2*3*3);
+    glDrawArrays(GL_TRIANGLES, 0, 6 * 2 * 3 * 3);
 
     glBindVertexArray(0);
 

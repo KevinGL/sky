@@ -12,9 +12,9 @@ out vec3 frag;
 
 void main(void)
 {
-    vec4 vertex2=vec4(vertex+posCam,1.0);
+    vec4 vertex2 = vec4(vertex + posCam, 1.0);
 
-    gl_Position=proj*view*model*vertex2;
+    gl_Position = proj * view * model * vertex2;
 	
-	frag=vertex;
+	frag = vertex;
 }

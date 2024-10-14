@@ -5,6 +5,8 @@ uniform vec3 zenithColor;
 
 //uniform double opacity;
 uniform vec3 sunPos;
+uniform float epsilon;
+uniform float heightSun;
 
 in vec3 frag;
 
@@ -16,30 +18,24 @@ float largSun = 8.0;//2.0;
 
 double calculOpacity()
 {
-	float ecartMax = 0.5;
-	
-	vec3 vecteurProjXY = vec3(sunPos.x, sunPos.y, 0.0);
-	
-	float anglePlanXY = acos(dot(normalize(vecteurProjXY), normalize(sunPos))) * 180/PI;
-	
-	if(sunPos.z < 0)
-	{
-		anglePlanXY *= -1;
-	}
-	
 	float opacity;
 	
-	if(anglePlanXY < -ecartMax)
-		opacity = 0.0;
-	else
-	if(anglePlanXY >= -ecartMax && anglePlanXY < ecartMax)
+	if(heightSun >= 0.0)
 	{
-		float coef = 1.0/(2 * ecartMax);
-		
-		opacity = coef * anglePlanXY + 0.5;
-	}
-	else
 		opacity = 1.0;
+	}
+	
+	else
+	if(heightSun >= -epsilon && heightSun < 0.0)
+	{
+		float coef = 1.0 / epsilon;
+		opacity = coef * heightSun + 1.0;
+	}
+	
+	else
+	{
+		opacity = 0.0;
+	}
 	
 	return opacity;
 }
