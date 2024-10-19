@@ -133,8 +133,6 @@ void Sky::CalculSunPos()
 
     //std::cout << hourHours << " " << angleS << " " << angleN << " => " << sunPos.x << " " << sunPos.y << " " << sunPos.z << std::endl;
 
-    const float declination = 23.0f;
-
     hour = (date.tm_hour * 3600.0 + date.tm_min * 60.0 + date.tm_sec) * 1000.0 + (SDL_GetTicks() - chrono) * speed;
 
     if(hour < 0)
@@ -164,5 +162,5 @@ void Sky::CalculSunPos()
 
     sunPos = rotation * sunPos;
 
-    std::cout << hourHours << " => " << heightSun << std::endl;
+    //std::cout << hourHours << " => " << heightSun << std::endl;
 }
