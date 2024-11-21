@@ -16,11 +16,13 @@
 
 struct Sky_VBO
 {
-    //std::vector<float> vertex;
+    std::vector<float> vertices;
+    std::vector<float> opacities;
+    std::vector<float> pulsations;
     GLuint VBO;
     GLuint VAO;
     std::vector<GLuint> textures;
-    unsigned int nbVertex;
+    unsigned int nbStars;
 };
 
 class Sky
