@@ -6,7 +6,7 @@ uniform vec3 zenithColor;
 //uniform double opacity;
 uniform vec3 sunPos;
 uniform float epsilon;
-uniform float heightSun;
+uniform float opacity;
 
 in vec3 frag;
 
@@ -15,30 +15,6 @@ out vec4 FragColor;
 float PI = 3.14159265359;
 
 float largSun = 8.0;//2.0;
-
-double calculOpacity()
-{
-	float opacity;
-	
-	if(heightSun >= 0.0)
-	{
-		opacity = 1.0;
-	}
-	
-	else
-	if(heightSun >= -epsilon && heightSun < 0.0)
-	{
-		float coef = 1.0 / epsilon;
-		opacity = coef * heightSun + 1.0;
-	}
-	
-	else
-	{
-		opacity = 0.0;
-	}
-	
-	return opacity;
-}
 
 void drawSun(float angleSun)
 {
@@ -57,7 +33,7 @@ void main(void)
 	
 	float paramMix = abs(sin(angle));
 	
-	FragColor = vec4(mix(horizonColor, zenithColor, paramMix), calculOpacity());
+	FragColor = vec4(mix(horizonColor, zenithColor, paramMix), opacity);
 	
 	float angleSun = acos(dot(normalize(sunPos), normalize(frag))) * 180/PI;
 	

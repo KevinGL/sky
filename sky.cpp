@@ -134,9 +134,29 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
 
     CalculSunPos();
 
+    epsilon = fabs(sunHeightMin) / 10;
+
+    float opacity;
+
+	if(sunPos.z >= 0.0)
+	{
+		opacity = 1.0;
+	}
+
+	else
+	if(sunPos.z >= -epsilon && sunPos.z < 0.0)
+	{
+		float coef = 1.0 / epsilon;
+		opacity = coef * sunPos.z + 1.0;
+	}
+
+	else
+	{
+		opacity = 0.0;
+	}
+
     glUniform3f(glGetUniformLocation(shader, "sunPos"), sunPos.x, sunPos.y, sunPos.z);
-    glUniform1f(glGetUniformLocation(shader, "epsilon"), epsilon);
-    glUniform1f(glGetUniformLocation(shader, "heightSun"), heightSun);
+    glUniform1f(glGetUniformLocation(shader, "opacity"), opacity);
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "proj"), 1, false, glm::value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, false, glm::value_ptr(model));

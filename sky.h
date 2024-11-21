@@ -45,7 +45,7 @@ class Sky
     float sunHeightMax;
     float sunHeightMin;
     float heightSun;
-    const float epsilon = 4.0f;
+    float epsilon;
     const float declination = 46.0f;
 
     GLuint loadShader(const std::string path);
