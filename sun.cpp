@@ -3,106 +3,24 @@
 
 void Sky::CalculSunPos()
 {
-    /*float angle0h, angle12h, angleN, angleS;
+    const float cylinderRadius = 1.0f;
+    const float obliquity = 23.0f;
+    const float cylinderHeight = cylinderRadius * tan(obliquity * M_PI / 180);
+    const float cylinderAngle = 90.0f - latitude;
 
-    const float colatitude = 90.0f - latitude;
+    unsigned int daySinceDec21 = date.tm_mday + 11;
+    unsigned int daysByMonth[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-    const float period = 365.25f * 24.0f * 3600.0f;
-    const float pulsation = (2 * M_PI)/period;
-
-    tm sol;
-
-    sol.tm_mday = 21;
-    sol.tm_mon = 12;
-    sol.tm_year = 70;
-    sol.tm_hour = 0;
-    sol.tm_min = 0;
-    sol.tm_sec = 0;
-
-    time_t now = mktime(&date);
-    time_t solsticeDec = mktime(&sol);
-
-    timestampYear = now - solsticeDec;
-
-    const float alpha = -23.0f * cos(pulsation * timestampYear);
-
-    if(latitude >= 0.0f)
+    for(size_t i = 0 ; i < date.tm_mon ; i++)
     {
-        const float beta = 90.0f - (alpha + colatitude);
-
-        angle12h = 90.0f - beta;
-
-        const float gamma = 90.0f - (colatitude - alpha);
-
-        angle0h = -(90.0f - gamma);
-
-        angleN = angle0h;
-        angleS = angle12h;
+        daySinceDec21 += daysByMonth[i];
     }
 
-    else
-    {
-        const float beta = 90.0f - ((180.0f - colatitude) - alpha);
+    //std::cout << daySinceDec21 << std::endl;
 
-        angle12h = 90.0f - beta;
-
-        const float gamma = 90.0f - ((180.0f - colatitude) + alpha);
-
-        angle0h = -(90.0f - gamma);
-
-        angleN = angle12h;
-        angleS = angle0h;
-    }
-
-    float orbitHeight, theta, delta;
-
-    glm::vec4 pos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-    if(angleS >= 0 && angleN >= 0)
-    {
-        const float lambda = (180.0f - angleN - angleS)/2;
-        orbitHeight = fabs(RADIUS_ORBIT_SUN * cos(lambda * M_PI/180));
-        theta = 90.0f - angleN - lambda;
-        delta = sqrt(pow(RADIUS_ORBIT_SUN, 2) - pow(orbitHeight, 2));
-    }
-    else
-    if(angleS >= 0 && angleN < 0)
-    {
-        const float lambda = (180.0f - angleS + fabs(angleN))/2;
-        orbitHeight = fabs(RADIUS_ORBIT_SUN * cos(lambda * M_PI/180));
-
-        if(angleS < fabs(angleN))
-            orbitHeight *= -1;
-
-        const float epsilon = 90.0f - angleS;
-        theta = lambda - epsilon;
-        delta = sqrt(pow(RADIUS_ORBIT_SUN, 2) - pow(orbitHeight, 2));
-    }
-    else
-    if(angleS < 0 && angleN >= 0)
-    {
-        const float lambda = (180.0f - fabs(angleS) + angleN)/2;
-        orbitHeight = -fabs(RADIUS_ORBIT_SUN * cos(lambda * M_PI/180));
-
-        if(angleN > fabs(angleS))
-            orbitHeight *= -1;
-
-        const float epsilon = 90.0f - fabs(angleS);
-        theta = lambda - epsilon;
-        delta = sqrt(pow(RADIUS_ORBIT_SUN, 2) - pow(orbitHeight, 2));
-    }
-    else
-    if(angleS < 0 && angleN < 0)
-    {
-        const float lambda = (180.0f - fabs(angleS) - fabs(angleN))/2;
-        orbitHeight = -fabs(RADIUS_ORBIT_SUN * cos(lambda*M_PI/180));
-
-        theta = 90.0f - fabs(angleS) - lambda;
-        delta = sqrt(pow(RADIUS_ORBIT_SUN, 2)-pow(orbitHeight, 2));
-    }
-
-    sunHeightMax = RADIUS_ORBIT_SUN * sin(angleS * M_PI/180);
-    sunHeightMin = RADIUS_ORBIT_SUN * sin(angleN * M_PI/180);
+    const float period = 365.25f;
+    const float pulsation = (2 * M_PI) / period;
+    const float circleHeight = -cylinderHeight * cos(pulsation * daySinceDec21);
 
     hour = (date.tm_hour * 3600.0 + date.tm_min * 60.0 + date.tm_sec) * 1000.0 + (SDL_GetTicks() - chrono) * speed;
 
@@ -117,23 +35,43 @@ void Sky::CalculSunPos()
         hour -= 24.0 * 3600000.0;
     }
 
-    const float hourHours = hour/3600000.0f;
-    const float angleZ = (hourHours/24) * 360;
+    const float hourHours = hour / 3600000.0f;
+    const float alpha = -(hourHours / 24) * 360;
 
-    glm::mat4 rotTheta = glm::rotate(-theta, glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 transHeight = glm::translate(0.0f, 0.0f, orbitHeight);
-    glm::mat4 rotZ = glm::rotate(-angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 transY = glm::translate(0.0f, delta, 0.0f);
+    sunPos = glm::vec4(0.0f, cylinderRadius, 0.0f, 1.0f);
+    glm::vec4 sunPosMax = glm::vec4(0.0f, cylinderRadius, 0.0f, 1.0f);
+    glm::vec4 sunPosMin = glm::vec4(0.0f, cylinderRadius, 0.0f, 1.0f);
 
-    pos = rotTheta * transHeight * rotZ * transY * pos;
+    const glm::mat4 cylinderIncl = glm::rotate(-cylinderAngle, 1.0f, 0.0f, 0.0f);
+    const glm::mat4 circleUp = glm::translate(0.0f, 0.0f, circleHeight);
+    const glm::mat4 circleRot = glm::rotate(alpha, 0.0f, 0.0f, 1.0f);
 
-    sunPos = pos;*/
+    glm::mat4 circleRotMidday = glm::rotate(180.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 circleRotMidnight = glm::rotate(0.0f, 0.0f, 0.0f, 1.0f);
+
+    sunPos = circleRot * sunPos;
+    sunPos = circleUp * sunPos;
+    sunPos = cylinderIncl * sunPos;
+
+    sunPosMax = circleRotMidday * sunPosMax;
+    sunPosMax = circleUp * sunPosMax;
+    sunPosMax = cylinderIncl * sunPosMax;
+
+    sunPosMin = circleRotMidnight * sunPosMin;
+    sunPosMin = circleUp * sunPosMin;
+    sunPosMin = cylinderIncl * sunPosMin;
+
+    sunHeightMin = sunPosMin.z;
+    sunHeightMax = sunPosMax.z;
+
+    //std::cout << hourHours << " => " << alpha << " => " << sunPos.x << " " << sunPos.y << " " << sunPos.z << std::endl;
+    //printf("%f => %f (%f - %f)                \r", hourHours, sunPos.z, sunHeightMin, sunHeightMax);
 
     //std::cout << "Sud : " << angleS << " Nord : " << angleN << std::endl;
 
     //std::cout << hourHours << " " << angleS << " " << angleN << " => " << sunPos.x << " " << sunPos.y << " " << sunPos.z << std::endl;
 
-    hour = (date.tm_hour * 3600.0 + date.tm_min * 60.0 + date.tm_sec) * 1000.0 + (SDL_GetTicks() - chrono) * speed;
+    /*hour = (date.tm_hour * 3600.0 + date.tm_min * 60.0 + date.tm_sec) * 1000.0 + (SDL_GetTicks() - chrono) * speed;
 
     if(hour < 0)
     {
@@ -160,7 +98,7 @@ void Sky::CalculSunPos()
 
     glm::mat4 rotation = glm::rotate(-declination, 1.0f, 0.f, 0.0f);
 
-    sunPos = rotation * sunPos;
+    sunPos = rotation * sunPos;*/
 
     //std::cout << hourHours << " => " << heightSun << std::endl;
 }
