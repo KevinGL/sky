@@ -130,7 +130,14 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
 
     glUniform3f(glGetUniformLocation(shader, "horizonColor"), horizonColor.x, horizonColor.y, horizonColor.z);
     glUniform3f(glGetUniformLocation(shader, "zenithColor"), zenithColor.x, zenithColor.y, zenithColor.z);
-    //glUniform1d(glGetUniformLocation(shader,"opacity"), SkyOpacity());
+
+    const glm::vec3 colorSunFirstLayer1 = glm::vec3(1.0f, 1.0f, 0.788f);
+    const glm::vec3 colorSunSecondLayer1 = glm::vec3(1.0f);
+
+    glm::vec3 colorSunFirstLayer2 = glm::vec3(1.0f, 0.588f, 0.0627f);
+    glm::vec3 colorSunSecondLayer2 = glm::vec3(1.0f, 0.745f, 0.4196f);
+
+    glm::vec3 colorSunFirstLayer, colorSunSecondLayer;
 
     CalculSunPos();
 
@@ -154,6 +161,53 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
 	{
 		opacity = 0.0;
 	}
+
+	///////////////////////////////
+
+	float haloWidth;
+	const float haloWidthMin = 8.0f;
+	const float haloWidthMax = 32.0f;
+	const float epsilonHalo = 2 * epsilon;
+
+	if(sunPos.z < -epsilonHalo)
+    {
+        colorSunFirstLayer = colorSunFirstLayer2;
+        colorSunSecondLayer = colorSunSecondLayer2;
+
+        haloWidth = haloWidthMin;
+    }
+
+    else
+	if(sunPos.z >= -epsilonHalo && sunPos.z < epsilonHalo)
+    {
+        const glm::vec3 coefFirstLayer = (colorSunFirstLayer1 - colorSunFirstLayer2) / (2 * epsilonHalo);
+        const glm::vec3 coefSecondLayer = (colorSunSecondLayer1 - colorSunSecondLayer2) / (2 * epsilonHalo);
+
+        const glm::vec3 ordFirstLayer = -coefFirstLayer * epsilonHalo + colorSunFirstLayer1;
+        const glm::vec3 ordSecondLayer = -coefSecondLayer * epsilonHalo + colorSunSecondLayer1;
+
+        colorSunFirstLayer = coefFirstLayer * sunPos.z + ordFirstLayer;
+        colorSunSecondLayer = coefSecondLayer * sunPos.z + ordSecondLayer;
+
+        ///////////////////////////////////////////
+
+        const float coefWidth = (haloWidthMax - haloWidthMin) / (2 * epsilonHalo);
+        const float ordWidth = -coefWidth * epsilonHalo + haloWidthMax;
+
+        haloWidth = coefWidth *  sunPos.z + ordWidth;
+    }
+
+    else
+    {
+        colorSunFirstLayer = colorSunFirstLayer1;
+        colorSunSecondLayer = colorSunSecondLayer1;
+
+        haloWidth = haloWidthMax;
+    }
+
+	glUniform3f(glGetUniformLocation(shader, "colorSunFirstLayer"), colorSunFirstLayer.x, colorSunFirstLayer.y, colorSunFirstLayer.z);
+    glUniform3f(glGetUniformLocation(shader, "colorSunSecondLayer"), colorSunSecondLayer.x, colorSunSecondLayer.y, colorSunSecondLayer.z);
+    glUniform1f(glGetUniformLocation(shader, "haloWidth"), haloWidth);
 
     glUniform3f(glGetUniformLocation(shader, "sunPos"), sunPos.x, sunPos.y, sunPos.z);
     glUniform1f(glGetUniformLocation(shader, "opacity"), opacity);

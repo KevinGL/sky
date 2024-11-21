@@ -62,7 +62,7 @@ class Sky
 
     public :
 
-    void Init(tm &dat,const float lat,glm::vec3 hColor,glm::vec3 zColor,const float spd=1.0f);
+    void Init(tm &dat, const float lat, glm::vec3 hColor, glm::vec3 zColor, const float spd = 1.0f);
     void Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj);
 
     glm::vec4 getSunPos()
