@@ -29,6 +29,7 @@ void Sky::Init(tm &dat, const float lat, glm::vec3 hColor, glm::vec3 zColor, con
     zenithColor = glm::vec3(zColor.x/255, zColor.y/255, zColor.z/255);
 
     shader = loadShader("../Mini-libs/sky/shaderSky.");
+    shaderSun = loadShader("../Mini-libs/sky/shaderSun.");
     shaderStars = loadShader("../Mini-libs/sky/shaderStars.");
 
     InitVBO();
@@ -38,7 +39,7 @@ void Sky::Init(tm &dat, const float lat, glm::vec3 hColor, glm::vec3 zColor, con
 
 void Sky::InitVBO()
 {
-    float vertex[6*2*3*3]=
+    float vertex[6 * 2 * 3 * 3]=
     {
         -SKY_SIZE, -SKY_SIZE, -SKY_SIZE,          //Bas
         -SKY_SIZE, SKY_SIZE, -SKY_SIZE,
@@ -105,7 +106,7 @@ void Sky::InitVBO()
     glBindVertexArray(vbo.VAO);
     glBindBuffer(GL_ARRAY_BUFFER, vbo.VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, 6*2*3*3 * sizeof(float), vertex, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * 3 * 3 * sizeof(float), vertex, GL_STREAM_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -113,6 +114,7 @@ void Sky::InitVBO()
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
+    //InitSun();
     InitStars();
 }
 
@@ -131,43 +133,44 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
     glUniform3f(glGetUniformLocation(shader, "horizonColor"), horizonColor.x, horizonColor.y, horizonColor.z);
     glUniform3f(glGetUniformLocation(shader, "zenithColor"), zenithColor.x, zenithColor.y, zenithColor.z);
 
-    const glm::vec3 colorSunFirstLayer1 = glm::vec3(1.0f, 1.0f, 0.788f);
-    const glm::vec3 colorSunSecondLayer1 = glm::vec3(1.0f);
-
-    glm::vec3 colorSunFirstLayer2 = glm::vec3(1.0f, 0.588f, 0.0627f);
-    glm::vec3 colorSunSecondLayer2 = glm::vec3(1.0f, 0.745f, 0.4196f);
-
-    glm::vec3 colorSunFirstLayer, colorSunSecondLayer;
-
     CalculSunPos();
 
     epsilon = fabs(sunHeightMin) / 10;
+    const float theta = -4 * epsilon;
 
     float opacity;
 
-	if(sunPos.z >= 0.0)
+	if(sunPos.z < theta)
 	{
-		opacity = 1.0;
+		opacity = 0.0f;
 	}
 
 	else
-	if(sunPos.z >= -epsilon && sunPos.z < 0.0)
+	if(sunPos.z >= theta && sunPos.z < 0.0f)
 	{
-		float coef = 1.0 / epsilon;
-		opacity = coef * sunPos.z + 1.0;
+		const float coef = 1.0f / fabs(theta);
+		opacity = coef * sunPos.z + 1.0f;
 	}
 
 	else
 	{
-		opacity = 0.0;
+		opacity = 1.0f;
 	}
 
-	///////////////////////////////
+	//////////////////////////////
 
-	float haloWidth;
+	const glm::vec3 colorSunFirstLayer1 = glm::vec3(1.0f, 1.0f, 0.788f);
+    const glm::vec3 colorSunSecondLayer1 = glm::vec3(1.0f);
+
+    const glm::vec3 colorSunFirstLayer2 = glm::vec3(1.0f, 0.588f, 0.0627f);
+    const glm::vec3 colorSunSecondLayer2 = glm::vec3(1.0f, 0.745f, 0.4196f);
+
+    float haloWidth;
 	const float haloWidthMin = 8.0f;
 	const float haloWidthMax = 32.0f;
-	const float epsilonHalo = 2 * epsilon;
+	const float epsilonHalo = 12 * epsilon;
+
+    glm::vec3 colorSunFirstLayer, colorSunSecondLayer;
 
 	if(sunPos.z < -epsilonHalo)
     {
@@ -205,12 +208,14 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
         haloWidth = haloWidthMax;
     }
 
+	///////////////////////////////
+
 	glUniform3f(glGetUniformLocation(shader, "colorSunFirstLayer"), colorSunFirstLayer.x, colorSunFirstLayer.y, colorSunFirstLayer.z);
     glUniform3f(glGetUniformLocation(shader, "colorSunSecondLayer"), colorSunSecondLayer.x, colorSunSecondLayer.y, colorSunSecondLayer.z);
+    glUniform3f(glGetUniformLocation(shader, "sunPos"), sunPos.x, sunPos.y, sunPos.z);
     glUniform1f(glGetUniformLocation(shader, "haloWidth"), haloWidth);
 
-    glUniform3f(glGetUniformLocation(shader, "sunPos"), sunPos.x, sunPos.y, sunPos.z);
-    glUniform1f(glGetUniformLocation(shader, "opacity"), opacity);
+	glUniform1f(glGetUniformLocation(shader, "opacity"), opacity);
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "proj"), 1, false, glm::value_ptr(proj));
     glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, false, glm::value_ptr(model));
@@ -219,6 +224,8 @@ void Sky::Draw(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj
     glDrawArrays(GL_TRIANGLES, 0, 6 * 2 * 3 * 3);
 
     glBindVertexArray(0);
+
+    //DrawSun(posCam, model, view, proj);
 
     glEnable(GL_DEPTH_TEST);
 }

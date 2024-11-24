@@ -1,6 +1,160 @@
 #include <GL/glew.h>
 #include "sky.h"
 
+void Sky::InitSun()
+{
+    float vertices[3 * 6] =
+    {
+        -0.5f, 0.0f, -0.5f,
+        -0.5f, 0.0f, 0.5f,
+        0.5f, 0.0f, -0.5f,
+
+        0.5f, 0.0f, -0.5f,
+        -0.5f, 0.0f, 0.5f,
+        0.5f, 0.0f, 0.5f
+    };
+
+    glGenVertexArrays(1, &sun.VAO);
+    glGenBuffers(1, &sun.VBO);
+
+    glBindVertexArray(sun.VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, sun.VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, 3 * 6 * sizeof(float), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Sky::DrawSun(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj)
+{
+    float haloHeight = 2.0f;
+    const float wMin = haloHeight;
+    const float wMax = 4 * haloHeight;
+    float haloWidth;
+    const float coefSizeMin = 0.5f;
+    float coefSize;
+	/*const float opacityMin = 0.1f;
+	float opacity;
+
+	if(sunPos.z < 0.0f)
+    {
+        opacity = opacityMin;
+    }
+    else
+    if(sunPos.z >= 0.0f && sunPos.z < epsilon)
+    {
+        const float coef = (1.0f - opacityMin) / epsilon;
+        opacity = coef * sunPos.z + opacityMin;
+    }
+    else
+    {
+        opacity = 1.0f;
+    }*/
+
+    /////////////////////////////////////////
+
+    const float theta = epsilon;
+
+    if(sunPos.z <= -theta)
+    {
+        haloWidth = wMax;
+        coefSize = coefSizeMin;
+    }
+    else
+    if(sunPos.z > -theta && sunPos.z <= theta)
+    {
+        float coef = (wMin - wMax) / (2 * theta);
+        float ord = -coef * theta + wMin;
+        haloWidth = coef * sunPos.z + ord;
+
+        coef = (1.0f - coefSizeMin) / (2 * theta);
+        ord = -coef * theta + 1.0f;
+        coefSize = coef * sunPos.z + ord;
+    }
+    else
+    {
+        haloWidth = wMin;
+        coefSize = 1.0f;
+    }
+
+	const glm::vec3 colorSunFirstLayer1 = glm::vec3(1.0f, 1.0f, 0.788f);
+    const glm::vec3 colorSunSecondLayer1 = glm::vec3(1.0f);
+
+    const glm::vec3 colorSunFirstLayer2 = glm::vec3(1.0f, 0.0f, 0.0f);
+    const glm::vec3 colorSunSecondLayer2 = glm::vec3(1.0f, 0.4902, 0.1529f);
+
+    glm::vec3 colorSunFirstLayer, colorSunSecondLayer;
+
+    if(sunPos.z <= -epsilon)
+    {
+        colorSunFirstLayer = colorSunFirstLayer2;
+        colorSunSecondLayer = colorSunSecondLayer2;
+    }
+    else
+    if(sunPos.z > -epsilon && sunPos.z <= epsilon)
+    {
+        glm::vec3 coef = (colorSunFirstLayer1 - colorSunFirstLayer2) / (2 * epsilon);
+        glm::vec3 ord = -coef * epsilon + colorSunFirstLayer1;
+        colorSunFirstLayer = coef * sunPos.z + ord;
+
+        coef = (colorSunSecondLayer1 - colorSunSecondLayer2) / (2 * epsilon);
+        ord = -coef * epsilon + colorSunSecondLayer1;
+        colorSunSecondLayer = coef * sunPos.z + ord;
+    }
+    else
+    {
+        colorSunFirstLayer = colorSunFirstLayer1;
+        colorSunSecondLayer = colorSunSecondLayer1;
+    }
+
+    const glm::vec3 vecProj = glm::normalize(glm::vec3(sunPos.x, sunPos.y, 0.0f));
+    const glm::vec3 toSun = glm::normalize(glm::vec3(sunPos.x, sunPos.y, sunPos.z));
+    float angleH = acos(glm::dot(vecProj, glm::vec3(0.0f, 1.0f, 0.0f))) * 180 / M_PI;
+    float angleV = acos(glm::dot(vecProj, toSun)) * 180 / M_PI;
+
+    if(sunPos.x > 0)
+    {
+        angleH *= -1;
+    }
+
+    if(sunPos.z < 0)
+    {
+        angleV *= -1;
+    }
+
+    //std::cout << angleV << std::endl;
+
+    model = glm::translate(posCam.x, posCam.y, posCam.z);
+    model *= glm::rotate(angleH, 0.0f, 0.0f, 1.0f);
+    model *= glm::rotate(angleV, 1.0f, 0.0f, 0.0f);
+    model *= glm::translate(0.0f, 2.0f, 0.0f);
+    model *= glm::scale(coefSize * haloWidth, 1.0f, coefSize * haloHeight);
+
+    glUseProgram(shaderSun);
+
+    glBindVertexArray(sun.VAO);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderSun, "proj"), 1, false, glm::value_ptr(proj));
+    glUniformMatrix4fv(glGetUniformLocation(shaderSun, "model"), 1, false, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(shaderSun, "view"), 1, false, glm::value_ptr(view));
+
+    //glUniform1f(glGetUniformLocation(shaderSun, "opacityGlobal"), opacity);
+
+	glUniform3f(glGetUniformLocation(shaderSun, "colorLayer"), colorSunFirstLayer.x, colorSunFirstLayer.y, colorSunFirstLayer.z);
+	glUniform1f(glGetUniformLocation(shaderSun, "radius"), 0.5f);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glUniform3f(glGetUniformLocation(shaderSun, "colorLayer"), colorSunSecondLayer.x, colorSunSecondLayer.y, colorSunSecondLayer.z);
+    glUniform1f(glGetUniformLocation(shaderSun, "radius"), 0.25f);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glBindVertexArray(0);
+}
+
 void Sky::CalculSunPos()
 {
     const float cylinderRadius = 1.0f;

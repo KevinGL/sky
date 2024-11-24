@@ -8,7 +8,6 @@ uniform vec3 colorSunSecondLayer;
 uniform float haloWidth;
 
 uniform vec3 sunPos;
-uniform float epsilon;
 uniform float opacity;
 
 in vec3 frag;
@@ -36,13 +35,62 @@ void drawSun(float angleSun)
 	FragColor = vec4(color, FragColor.a);
 }
 
+vec3 calculColorSunset()
+{
+	vec3 colorSunset = vec3(1.0, 127.0 / 255, 39.0 / 255);
+	vec3 toSun = normalize(sunPos);
+	vec3 toSunProj = vec3(sunPos.xy, 0.0);
+	vec3 toFragProj = normalize(vec3(frag.xy, 0.0));
+	
+	float dotProd = dot(toSun, toSunProj);
+	float dotLimit = 0.8;
+	float coef = 1.0 / (1.0 - dotLimit);
+	float ord = -coef * 1.0 + 1.0;
+	
+	float factor = coef * dotProd + ord;
+	
+	if(factor < 0.0)
+	{
+		factor = 0.0;
+	}
+	
+	if(factor > 1.0)
+	{
+		factor = 1.0;
+	}
+	
+	vec3 colorSwitchSunHeight = mix(horizonColor, colorSunset, factor);
+	
+	dotLimit = -1.0;
+	coef = -1.0 / (1.0 - dotLimit);
+	ord = -coef * 1.0 + 0.0;
+	dotProd = dot(toFragProj, toSunProj);
+	
+	factor = coef * dotProd + ord;
+	
+	if(factor < 0.0)
+	{
+		factor = 0.0;
+	}
+	
+	if(factor > 1.0)
+	{
+		factor = 1.0;
+	}
+	
+	//return mix(horizonColor, colorSunset, factor);
+	return mix(colorSwitchSunHeight, horizonColor, factor);
+}
+
 void main(void)
 {
     float angle = frag.z / length(frag);
 	
 	float paramMix = abs(sin(angle));
 	
-	FragColor = vec4(mix(horizonColor, zenithColor, paramMix), opacity);
+	vec3 horizonColor2 = calculColorSunset();
+	
+	FragColor = vec4(mix(horizonColor2, zenithColor, paramMix), opacity);
 	
 	float angleSun = acos(dot(normalize(sunPos), normalize(frag))) * 180 / PI;
 	

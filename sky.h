@@ -30,8 +30,10 @@ class Sky
     private :
 
     GLuint shader;
+    GLuint shaderSun;
     GLuint shaderStars;
     Sky_VBO vbo;
+    Sky_VBO sun;
     Sky_VBO stars;
     glm::vec3 horizonColor;
     glm::vec3 zenithColor;
@@ -48,14 +50,15 @@ class Sky
     float sunHeightMin;
     float heightSun;
     float epsilon;
-    const float declination = 46.0f;
 
     GLuint loadShader(const std::string path);
     char* readFileShader(const std::string &path);
     bool checkCompilShader(GLuint shader,const std::string &chemin);
     bool checkLink(GLuint programID);
     void InitVBO();
+    void InitSun();
     void InitStars();
+    void DrawSun(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj);
     void DrawStars(glm::vec3 posCam, glm::mat4 model, glm::mat4 view, glm::mat4 proj);
     //double SkyOpacity();
     void CalculSunPos();
@@ -93,10 +96,5 @@ class Sky
     float getEpsilon()
     {
         return epsilon;
-    }
-
-    float getDeclination()
-    {
-        return declination;
     }
 };
