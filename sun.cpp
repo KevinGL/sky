@@ -218,41 +218,56 @@ void Sky::CalculSunPos()
     sunHeightMin = sunPosMin.z;
     sunHeightMax = sunPosMax.z;
 
-    //std::cout << hourHours << " => " << alpha << " => " << sunPos.x << " " << sunPos.y << " " << sunPos.z << std::endl;
-    //printf("%f => %f (%f - %f)                \r", hourHours, sunPos.z, sunHeightMin, sunHeightMax);
+    ////////////////////////////////////////////////////
 
-    //std::cout << "Sud : " << angleS << " Nord : " << angleN << std::endl;
+    glm::vec3 toSun = glm::vec3(sunPos.x, sunPos.y, sunPos.z);
+    glm::vec3 toSunProj = glm::vec3(sunPos.x, sunPos.y, 0.0f);
 
-    //std::cout << hourHours << " " << angleS << " " << angleN << " => " << sunPos.x << " " << sunPos.y << " " << sunPos.z << std::endl;
-
-    /*hour = (date.tm_hour * 3600.0 + date.tm_min * 60.0 + date.tm_sec) * 1000.0 + (SDL_GetTicks() - chrono) * speed;
-
-    if(hour < 0)
+    float angle = acos(glm::dot(glm::normalize(toSun), glm::normalize(toSunProj))) * 180 / M_PI;
+    if(toSun.z < 0.0f)
     {
-        hour += 24.0 * 3600000.0;
+        angle *= -1;
     }
 
+    const float gamma = 2000.0f;
+    const float beta = log(3.25f) / 90.0f;
+    const float temp = gamma * exp(beta * angle);
+
+    //std::cout << angle << " => " << temp << std::endl;
+
+    const float t = temp / 100.0f;
+
+    if(t <= 66.0f)
+    {
+        sunLightColor.x = 1.0f;
+    }
     else
-    if(hour > 24 * 3600000.0)
     {
-        hour -= 24.0 * 3600000.0;
+        sunLightColor.x = ((329.698727446f) * pow(t - 60.0f, -0.1332047592f)) / 255.0f;
     }
 
-    const float hourHours = hour / 3600000.0f;
-    const float alpha = (hourHours / 24) * 360;
+    if(t <= 66.0f)
+    {
+        sunLightColor.y = (99.4708025861f * log(t) - 161.1195861661f) / 255.0f;
+    }
+    else
+    {
+        sunLightColor.y = (288.1221695283f * pow(t - 60.0f, -0.0755148492f)) / 255.0f;
+    }
 
-    heightSun = -declination * cos(alpha * M_PI / 180);
+    if(t <= 19.0f)
+    {
+        sunLightColor.z = 0.0f;
+    }
+    else
+    if(t > 19.0f && t <= 66.0f)
+    {
+        sunLightColor.z = (138.5177312231f * log(t - 10.0f) - 305.0447927307f) / 255.0f;
+    }
+    else
+    {
+        sunLightColor.z = 1.0f;
+    }
 
-    sunPos.x = sin(alpha * M_PI / 180);
-    sunPos.y = cos(alpha * M_PI / 180);
-    sunPos.z = 0.0f;
-    sunPos.w = 1.0f;
-
-    //std::cout << hourHours << " => " << alpha << std::endl;
-
-    glm::mat4 rotation = glm::rotate(-declination, 1.0f, 0.f, 0.0f);
-
-    sunPos = rotation * sunPos;*/
-
-    //std::cout << hourHours << " => " << heightSun << std::endl;
+    //std::cout << angle << " => (" << sunLightColor.x << " " << sunLightColor.y << " " << sunLightColor.z << ")" << std::endl;
 }

@@ -37,6 +37,7 @@ class Sky
     Sky_VBO stars;
     glm::vec3 horizonColor;
     glm::vec3 zenithColor;
+    glm::vec3 sunLightColor;
     float speed;
     unsigned int startHour;
     unsigned int chrono;
@@ -96,5 +97,10 @@ class Sky
     float getEpsilon()
     {
         return epsilon;
+    }
+
+    glm::vec3 getSunLightColor()
+    {
+        return sunLightColor;
     }
 };
