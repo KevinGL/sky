@@ -1,6 +1,32 @@
 #include <GL/glew.h>
 #include "sky.h"
 
+Sky::Sky()
+{
+    std::ifstream file("./Path.ini");
+
+    if(file)
+    {
+        while(1)
+        {
+            std::string line;
+
+            if(!getline(file, line))
+            {
+                break;
+            }
+
+            if(line.find("Path=") == 0)
+            {
+                path = line;
+                path.erase(0, path.find("=") + 1);
+            }
+        }
+
+        file.close();
+    }
+}
+
 void Sky::Init(tm &dat, const float lat, glm::vec3 hColor, glm::vec3 zColor, const float spd)
 {
     speed = spd;
@@ -28,9 +54,9 @@ void Sky::Init(tm &dat, const float lat, glm::vec3 hColor, glm::vec3 zColor, con
     horizonColor = glm::vec3(hColor.x/255, hColor.y/255, hColor.z/255);
     zenithColor = glm::vec3(zColor.x/255, zColor.y/255, zColor.z/255);
 
-    shader = loadShader("../Mini-libs/sky/shaderSky.");
-    shaderSun = loadShader("../Mini-libs/sky/shaderSun.");
-    shaderStars = loadShader("../Mini-libs/sky/shaderStars.");
+    shader = loadShader(path + "sky/shaderSky.");
+    shaderSun = loadShader(path + "sky/shaderSun.");
+    shaderStars = loadShader(path + "sky/shaderStars.");
 
     InitVBO();
 
